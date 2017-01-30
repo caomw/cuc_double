@@ -1,0 +1,93 @@
+#
+# included by each sub-dir/Makefile
+# contains rules to forward 'make' to top-level Makefile
+# note that paths in here are relative to the original sub-dir.
+#
+
+.SUFFIXES:
+
+.PHONY: default
+
+# includes top-level targets (all, ...) and directories (testing, ...),
+# excluding 'clean' and some internal targets.
+# alphabetic order
+targets := \
+	all                  \
+	blas_fix             \
+	cleanall             \
+	cleandep             \
+	cleangen             \
+	cleanmake            \
+	clmagmablas          \
+	control              \
+	dense                \
+	echo                 \
+	generate             \
+	include              \
+	install              \
+	interface_cuda       \
+	interface_opencl     \
+	lib                  \
+	magmablas            \
+	shared               \
+	sparsela             \
+	sparse               \
+	sparse/blas          \
+	sparse/control       \
+	sparse/src           \
+	sparse/testing       \
+	sparse-lib           \
+	sparse-shared        \
+	sparse-static        \
+	sparse-test          \
+	src                  \
+	static               \
+	test                 \
+	test_headers         \
+	testers_f            \
+	testing              \
+	testing/lin          \
+	wrappers             \
+
+ifneq ($(MAKECMDGOALS),)
+
+# goals given on command line
+# forward them in one batch to top level
+
+# global targets in $(targets) are forwarded as-is
+# all other, directory-specific goals (e.g., files) are forwarded with directory prefix
+forward := $(filter $(targets), $(MAKECMDGOALS)) \
+           $(addprefix $(cdir)/, $(filter-out $(targets), $(MAKECMDGOALS)))
+
+# we want to run one top-level make command, not N different ones.
+# we'll make the first goal forward all the goals,
+# and disable the rest.
+first := $(firstword $(MAKECMDGOALS))
+
+rest  := $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+
+$(first): force
+	cd $(top) && $(MAKE) $(forward)
+
+$(rest): ;
+
+else
+
+# no goals given on command line
+# forward default rule to top level as-is
+%:
+	cd $(top) && $(MAKE) $@
+
+endif
+
+force: ;
+
+# don't regenerate Makefiles
+Makefile: ;
+
+$(top)/Makefile.subdir: ;
+
+# Disable parallel make for sub-directories, which causes problems,
+# e.g., if two top-level makes try to update a library simultaneously.
+# The first/rest mechanism above should also prevent parallel jobs.
+.NOTPARALLEL:

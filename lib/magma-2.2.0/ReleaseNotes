@@ -1,0 +1,381 @@
+
+             MAGMA Release Notes
+
+-----------------------------------------------------
+
+MAGMA is intended for CUDA enabled NVIDIA GPUs.
+It supports Fermi and Kepler GPUs.
+
+Included are routines for the following algorithms:
+
+    * LU, QR, and Cholesky factorizations
+    * Hessenberg, bidiagonal, and tridiagonal reductions
+    * Linear solvers based on LU, QR, and Cholesky
+    * Eigenvalue and singular value (SVD) problem solvers
+    * Generalized Hermitian-definite eigenproblem solver
+    * Mixed-precision iterative refinement solvers based on LU, QR, and Cholesky
+    * MAGMA BLAS including gemm, gemv, symv, and trsm
+    * Batched MAGMA BLAS including gemm, gemv, herk, and trsm
+    * Batched MAGMA LAPACK including LU, inverse (getri), QR, and Cholesky factorizations
+    * MAGMA Sparse including CG, GMRES, BiCGSTAB, LOBPCG, iterative refinement,
+      preconditioners, sparse kernels (SpMV, SpMM), and support for CSR, ELL, and
+      SELL-P data formats
+
+Most routines have all four precisions:
+single (s), double (d), single-complex (c), double-complex (z).
+
+ 2.2.0 - Nov 20, 2016
+    * Added variable size batched Cholesky factorization
+      magma_[sdcz]potrf_vbatched
+    * Added new fixed size batched BLAS routines
+      magmablas_[cz]{hemm, hemv, trmm}_batched
+      magmablas_[sd]{symm, symv, trmm}_batched
+    * Added new variable size batched BLAS routines
+      magmablas_[cz]{hemm, hemv, trmm, trsm}_vbatched
+      magmablas_[sd]{symm, symv, trmm, trsm}_vbatched
+    * Fixed memory leaks in {sy,he}evdx_2stage and getri_outofplace_batched.
+    * Fixed bug for small matrices in {symm, hemm}_mgpu and updated tester.
+    * Fixed libraries in make.inc examples for MKL with gcc.
+    * More robust error checking for Batched BLAS routines.
+
+    MAGMA-sparse
+    * Added Incomplete Sparse Approximate Inverse (ISAI) Preconditioner
+      for sparse triangular solves, including batched generation.
+    * Added Block-Jacobi triangular solves, including variable blocksize
+      (based on supervariable amalgamation).
+    * Added ParILUT, a parallel threshold ILU based on OpenMP.
+    * Added CSR5 format and CSR5 SpMV kernel, a sparse matrix vector product
+      often outperforming the cuSPARSE SpMV CSR and HYB.
+
+ 2.1.0 - Aug 30, 2016
+    * Added variable size batched routines:
+      magmablas_[sdcz]{gemm, gemv, syrk, herk, syr2k, her2k}_vbatched
+    * Improved performance of SVD routines, and fixed workspace size bugs.
+    * More robust error checking for BLAS routines.
+    * Expanded and reorganized documentation.
+    * Improved install (added DESTDIR, LIB_SUFFIX to Makefile; added install to CMake).
+
+    MAGMA-sparse
+    * Added a preconditioned QMR iterative solver (PQMR) including a kernel-merged version.
+    * Updated the preconditioner structure to allow for a specific ILU triangular solver.
+
+ 2.0.1 - Feb 26, 2016
+    * Fixed bug with 'make install'
+
+ 2.0.0 - final:  Feb  8, 2016
+       - beta 3: Jan 22, 2016
+       - beta 2: Jan  6, 2016
+    * See "README-v2.txt" for details about updating code.
+    * Removed support for CUDA arch 1.x, which NVIDIA no longer supports since CUDA 6.
+    * Changed to non-recursive Makefile.
+    * Changed definition of magma_queue_t to opaque structure.
+    * Changed header from magma.h to magma_v2.h
+    * Changed magma_get_{getrf, geqp3, geqrf, geqlf, gelqf, gebrd, gesvd}_nb to take both m, n.
+    * Added queue argument to magmablas routines, and deprecated magmablas{Set,Get}KernelStream.
+      This resolves a thread safety issue with using global magmablas{Set,Get}KernelStream.
+    * Fixed bugs related to relying on CUDA NULL stream implicit synchronization.
+    * Fixed memory leaks (zunmqr_m, zheevdx_2stage, etc.). Add -DDEBUG_MEMORY option to catch leaks.
+    * Fixed geqrf*_gpu bugs for m == nb, n >> m (-N 64,10000); and m >> n, n == nb+i (-N 10000,129)
+    * Fixed zunmql2_gpu for rectangular sizes.
+    * Fixed zhegvdx_m itype 3.
+    * Added zunglq, zungbr, zgeadd2 (which takes both alpha and beta).
+    * Merged single & multi-GPU CPU interface testers (e.g., merged testing_dgeev_m into testing_dgeev).
+    * Deprecated magma_device_sync; use magma_queue_sync instead.
+    
+    MAGMA-sparse
+    * Added QMR, TFQMR, preconditioned TFQMR
+    * Added CGS, preconditioned CGS
+    * Added kernel-fused versions for CGS/PCGS QMR, TFQMR/PTFQMR
+    * Changed relative stopping criterion to be relative to RHS
+    * Fixed bug in complex version of CG
+    * Accelerated version of Jacobi-CG
+    * Added very efficient IDR
+    * Performance tuning for SELLP SpMV
+
+ 1.7.0 - final:  Sep 11, 2015
+       - beta 1: Aug 25, 2015
+    * Added results archive to compare historical performance.
+    * Added Fortran code to example directory.
+    * Added magmaf_wtime for consistency with other Fortran interfaces; deprecated magma_wtime_f.
+    * Added and template batched MAGMA BLAS routine gemm, gemv, herk, trsv, and trsm
+    * Tuned batched MAGMA BLAS routines, in particular gemm, gemv, herk, and trsm
+    * Tuned batched MAGMA LAPACK routines, in particular Cholesky factorizations
+    * Tuned two stage symmetric eigenvalue code, {sy|he}heevdx_2stage, to improve performance.
+    * Tuned symmetric eigenvalue code, {sy|he}evd, to improve performance for N < 2000.
+    * Fixed NaN result with {sy|he}mv and {sy|he}mv_mgpu if GPU shared memory had NaN.
+    * Fixed Fortran constants (MagmaTrans, MagmaUpper, etc.).
+    * Fixed workspace requirements for the two stage symmetric eigenvalue problem
+      {sy|he}heevdx_2stage and multi-GPU {sy|he}heevdx_2stage_m.
+    * Fixed workspace requirements for Hessenberg (gehrd and gehrd_m) and multi-GPU geev_m.
+    * Fixed trtri for unit diagonal, and added tester.
+    * Fixed testing check for inverse (getri).
+    * Fixed multi-GPU {or|un}gqr_m for some k < n. (Currently only used in geev_m with m = n = k.)
+    * Fixed bug for batched routines
+    * Rename lapack_const to lapack_const_str, to avoid name conflict with PLASMA.
+    * Allow CMake build without Fortran (already existed for make).
+
+    MAGMA-sparse
+    * Added Induced Dimension Reduction Iterative solver (IDR).
+    * Added iterative sparse triangular solves for
+      incomplete factorization preconditioners.
+
+ 1.6.2 - May 4, 2015
+    * Added magma_{s,d,c,z}sqrt for real and complex scalar square root.
+    * Added magma_ceildiv and magma_roundup.
+    * Fixed magmablas_zlaset and magmablas_zlacpy for large M or N > 4M.
+    * Fixed testers for geqrf_batched and trsm_batched to compile with CUDA 5.x.
+
+    MAGMA-sparse
+    * All allocation failures and other errors now return error codes.
+    * cuSPARSE error codes mapped to MAGMA error codes.
+    * LOBPCG sparse eigensolver enabled for preconditioning using Jacobi and
+      incomplete LU factorizations.
+    * Some name changes in MAGMA-sparse for consistency with dense MAGMA.
+      All functions working on matrices now start with the prefix magma_zm***
+      instead some of them starting with magma_z_m***.
+    * magma_zmvisu for printing a matrix is now called magma_zprint_matrix.
+    * Added a tester for the sparse level 1 BLAS.
+    * Rename magma_z_sparse_matrix into magma_z_matrix.
+    * Redefine all vectors as dense matrices.
+    * Replace the vector functions with matrix functions.
+    * Bug fix in complex FGMRES.
+    * Added iterative incomplete factorization routines (iterative ILU/iterative IC).
+    * Enhance the ILU/IC with fill-in (level-ILU).
+
+ 1.6.1 - January 30, 2015
+    * Building as both shared and static library is default now.
+      Comment out FPIC in make.inc to build only static library.
+    * Added max norm and one norm to [zcsd]lange.
+    * Extended {sy|he}mv and {sy|he}mv_mgpu implementation to upper triangular.
+    * Fixed memory access bug in {sy|he}mv_mgpu, used in {sy|he}trd_mgpu.
+    * Fixed errant argument check in laswp, affecting getrf_mgpu.
+    * Fixed tau in [cz]gelqf, which needed to be conjugated.
+    * Fixed workspace size in symmetric/Hermitian eigenvalue solvers.
+    * Made fast magmablas_zhemv default in symmetric/Hermitian eigenvalue solvers
+      (previously needed to define -DFAST_HEMV option).
+    * Added FGMRES for non-constant preconditioner operator.
+    * Added backward communication interfaces for SpMV and
+      preconditioner passing the vectors on the GPU.
+    * Added function to generate cuSPARSE ILU level-scheduling information
+      for a given matrix.
+    * Added the batched QR routine.
+    * Performance improvments of all batched routines.
+    * Fixed "nan" output for batched factorizations.
+
+ 1.6.0 - November 16, 2014
+    * Added MAGMA batched linear algebra routines:
+        * Batched MAGMA BLAS including gemm, gemv, herk, and trsm
+        * Batched LU, GETRI, and Cholesky factorizations
+    * Added Bunch-Kaufman factorization and solver for symmetric
+      indefinite matrices: [zcsd]{he|sy}trf
+    * Added non-pivoted LDLt
+    * Added a Random Butterfly Transformation (RBT) and a new solver based
+      on RBT + LU without pivoting + iterative refinement
+    * Comprehensive release of sparse routines:
+        * All sparse routines equipped with a queue.
+        * Enhanced debugging routines.
+        * Interface to cuSPARSE functions.
+        * Added interface to pass data structures located in main/device memory.
+        * Added generic interface to call any solver/eigensolver.
+        * Added testscript checking correctness of routines.
+        * Added capability to iterate in block-wise fashion.
+        * Checks for memory leaks.
+
+ 1.5.0 - final:  Aug   30, 2014
+       - beta 3: July  18, 2014
+       - beta 2: May   30, 2014
+       - beta 1: April 25, 2014
+    * Added pre-release of sparse routines.
+    * Replaced character constants with symbolic constants (enums),
+      e.g., 'N' with MagmaNoTrans.
+    * Added SVD with Divide & Conquer, gesdd.
+    * Added unmbr/ormbr, unmlq/ormlq, used in gesdd.
+    * Improved performance of geev when computing eigenvectors by using
+      multi-threaded trevc.
+    * Added testing/run_tests.py script for more extensive testing.
+    * Changed laset interface to match LAPACK.
+    * Fixed memory access bug in transpose, and changed interface to match LAPACK.
+    * Fixed memory access bugs in lanhe/lansy, zlag2c, clag2z, dlag2s, slag2d,
+      zlat2c, dlat2s, trsm (trtri_diag).
+    * Added clat2z, slat2d.
+    * Added upper & lower cases in lacpy.
+    * Fixed unmql/ormql for rectangular matrices.
+    * Allow compiling without Fortran, but then testers have reduced functionality.
+    * Added wrappers for CPU BLAS asum, nrm2, dotu, dotc, dot. This isolates
+      the dependence on CBLAS to src/cblas*.cpp.
+    * Added queue/stream interfaces for many MAGMABLAS routines, using _q suffix.
+      These take magma_queue_t, which is a wrapper around CUDA stream.
+    * Updated documentation to doxygen format.
+
+ 1.4.1 - final:  December 17, 2013
+       - beta 2: December  9, 2013
+       - beta 1: November 23, 2013
+    * Improved performance of geev when computing eigenvectors by using blocked trevc.
+    * Added right-looking multi-GPU Cholesky factorization.
+    * Added new CMake installation for compiling on Windows.
+    * Updated magmablas to call appropriate version based on CUDA architecture
+      at runtime. GPU_TARGET now accepts multiple architectures together.
+
+ 1.4.0 - final:  Aug  14, 2013
+       - beta 2: June 28, 2013
+       - beta 1: June 19, 2013
+    * Use magma_init() and magma_finalize() to initialize and cleanup MAGMA.
+    * Merge libmagmablas into libmagma to eliminate circular dependencies.
+      Link with just -lmagma now.
+    * User can now #include <cublas_v2.h> before #include <magma.h>.
+      See testing_z_cublas_v2.cpp for an example.
+    * Can compile as shared library; see make.inc.mkl-shared and 'make shared'.
+    * Fix required workspace size in gels_gpu, gels3_gpu, geqrs_gpu, geqrs3_gpu.
+    * Fix required workspace size in [zcsd]geqrf.
+    * Fix required workspace size in [he|sy]evd*, [he|sy]gvd*.
+    * [zc|ds]geqrsv no longer segfaults when M > N.
+    * Fix gesv and posv in some situations when GPU memory is close to full.
+    * Fix synchronization in multi-GPU getrf_m and getrf2_mgpu.
+    * Fix multi-GPU geqrf_mgpu for M < N.
+    * Add MAGMA_ILP64 to compile with int being 64-bit. See make.inc.mkl-ilp64.
+    * Add panel factorizations for LU, QR, and Cholesky entirely on the GPU,
+      correspondingly in [zcsd]getf2_gpu, [zcsd]geqr2_gpu, and [zcsd]potf2_gpu.
+    * Add QR with pivoting in GPU interface (functions [zcsd]geqp3_gpu);
+      improve performance for both CPU and GPU interface QR with pivoting.
+    * Add multi-GPU Hessenberg and non-symmetric eigenvalue routines:
+      geev_m, gehrd_m, unghr_m, ungqr_m.
+    * Add multi-GPU symmetric eigenvalue routines (one-stage)
+      ([zhe|che|ssy|dsy]trd_mgpu,
+       [zhe|che|ssy|dsy]evd_m, [zhe|che|ssy|dsy]evdx_m,
+       [zhe|che|ssy|dsy]gvd_m, [zhe|che|ssy|dsy]gvdx_m ).
+    * Add single and multi-GPU symmetric eigenvalue routines (two-stage)
+      ([zhe|che|ssy|dsy]evdx_2stage,   [zhe|che|ssy|dsy]gvdx_2stage,
+       [zhe|che|ssy|dsy]evdx_2stage_m, [zhe|che|ssy|dsy]gvdx_2stage_m ).
+    * Add magma_strerror to get error message.
+    * Revised most testers to use common framework and options.
+    * Use CUBLAS gemm in src files, since it has been optimized for Kepler.
+    * Determine block sizes at runtime based on current card's architecture.
+    * In-place transpose now works for arbitrary n-by-n square matrix.
+      This also reduces required memory in zgetrf_gpu.
+    * Update Fortran wrappers with automated script.
+    * Fix Makefile for Kepler (3.0 and 3.5).
+
+ 1.3.0 - November 12, 2012
+    * Add MAGMA_VERSION constants and magma_version() in magma.h.
+    * Fix printing complex matrices.
+    * Fix documentation and query for heevd/syevd workspace sizes.
+    * Fix singularity check in trtri and trtri_gpu.
+    * Fixes for compiling on Windows (small, __attribute__, magma_free_cpu, etc.)
+    * Implement all 4 cases for zunmqr (QC, Q'C, CQ, CQ') and fix workspace size.
+    * Fix permuting rows for M > 32K.
+    * Check residual ||Ax-b||; faster and uses less memory than ||PA-LU|| check.
+
+ 1.2.1 - June 29, 2012
+    * Fix bug in [zcsd]getrf_gpu.cpp
+    * Fix workspace requirement for SVD in [zcsd]gesvd.cpp
+    * Fix a bug in freeing pinned memory (in interface_cuda/alloc.cpp)
+    * Fix a bug in [zcsd]geqrf_mgpu.cpp
+    * Fix zdotc to use cblas for portability
+    * Fix uppercase entries in blas/lapack headers
+    * Use magma_int_t in blas/lapack headers, and fix sources accordingly
+    * Fix magma_is_devptr error handling
+    * Add magma_malloc_cpu to allocate CPU memory aligned to 32-byte boundary
+      for performance and reproducibility
+    * Fix memory leaks in latrd* and zcgeqrsv_gpu
+    * Remove dependency on CUDA device driver
+    * Add QR with pivoting in CPU interface (functions [zcsd]geqp3)
+    * Add hegst/sygst Fortran interface
+    * Improve performance of gesv CPU interface by 30%
+    * Improve performance of ungqr/orgqr CPU and GPU interfaces by 30%;
+      more for small matrices
+
+ 1.2.0 - May 10, 2012
+    * Fix bugs in [zcsd]hegst[_gpu].cpp
+    * Fix a bug in [zcsd]latrd.cpp
+    * Fix a bug in [zcsd]gelqf_gpu.cpp
+    * Added application of a block reflector H or its transpose from the Right.
+      Routines changed -- [zcsd]larfb_gpu.cpp, [zc]unmqr2_gpu.cpp, and
+      [ds]ormqr2_gpu.cpp
+    * Fix *larfb_gpu for reflector vectors stored row-wise.
+    * Fix memory allocation bugs in [zc]unmqr2_gpu.cpp, [ds]ormqr2_gpu.cpp,
+      [zc]unmqr.cpp, and [ds]ormqr.cpp (thanks to Azzam Haidar).
+    * Fix bug in *lacpy that overwrote memory.
+    * Fix residual formula in testing_*gesv* and testing_*posv*.
+    * Fix sizeptr.cpp compile warning that caused make to fail.
+    * Fix warning in *getrf.cpp when nb0 is zero.
+    * Add reduction to band-diagonal for symmetric/Hermitian definite matrices
+      in [zc]hebbd.cpp and [ds]sybbd.cpp
+    * Updated eigensolvers for standard and generalized eigenproblems for
+      symmetric/Hermitian definite matrices
+    * Add wrappers around CUDA and CUBLAS functions,
+      for portability and error checking.
+    * Add tracing functions.
+    * Add two-stage reduction to tridiabonal form
+    * Add matrix print functions.
+    * Make info and return codes consistent.
+    * Change GPU_TARGET in make.inc to descriptive name (e.g., Fermi).
+    * Move magma_stream to -lmagmablas to eliminate dependency on -lmagma.
+
+ 1.1.0 - 11-11-11
+    * Fix a bug in [zcsd]geqrf_gpu.cpp and [zcsd]geqrf3_gpu.cpp for n>m
+    * Fix a bug in [zcsd]laset - to call the kernel only when m!=0 && n!=0
+    * Fix a bug in [zcsd]gehrd for ilo > 1 or ihi < n.
+    * Added missing Fortran interfaces
+    * Add general matrix inverse, [zcds]getri GPU interface.
+    * Add [zcds]potri in CPU and GPU interfaces
+       [Hatem Ltaief et al.]
+    * Add [zcds]trtri in CPU and GPU interfaces
+       [Hatem Ltaief et al.]
+    * Add [zcds]lauum in CPU and GPU interfaces
+       [Hatem Ltaief et al.]
+    * Add zgemm for Fermi obtained using autotuning
+    * Add non-GPU-resident versions of [zcds]geqrf, [zcds]potrf, and [zcds]getrf
+    * Add multi-GPU LU, QR, and Cholesky factorizations
+    * Add tile algorithms for multicore and multi-GPUs using the StarPU
+      runtime system (in directory 'multi-gpu-dynamic')
+    * Add [zcds]gesv and [zcds]posv in CPU interface. GPU interface was already in 1.0
+    * Add LAPACK linear equation testing code (in 'testing/lin')
+    * Add experimental directory ('exp') with algorithms for:
+      (1) Multi-core QR, LU, Cholskey
+      (2) Single GPU, all available CPU cores QR
+    * Add eigenvalue solver driver routines for the standard and generalized
+      symmetric/Hermitian eigenvalue problems [Raffaele Solca et al.].
+
+ 1.0.0 - August 25th, 2011
+    * Fix make.inc.mkl (Thanks to ar1309)
+    * Add gpu interfaces to [zcsd]hetrd, [zcsd]heevd
+    * Add all cases for [zcds]unmtr_gpu
+       [Raffaele Solca et al.]
+    * Add generalized Hermitian-definite eigenproblem solver ([zcds]hegvd)
+       [Raffaele Solca et al.]
+
+ 1.0.0RC5 - April 6th, 2011
+    * Add fortran interface for lapack functions
+    * Add new QR version on GPU ([zcsd]geqrf3_gpu) and corresponding
+      LS solver ([zcds]geqrs3_gpu)
+    * Add [cz]unmtr, [sd]ormtr functions
+    * Add two functions in fortran to compute the offset on device pointers
+          magmaf_[sdcz]off1d( NewPtr, OldPtr, inc, i)
+          magmaf_[sdcz]off2d( NewPtr, OldPtr, lda, i, j)
+        indices are given in Fortran (1 to N)
+    * WARNING: add FOPTS variable to the make.inc to use preprocessing
+      in compilation of Fortran files
+    * WARNING: fix bug with fortran compilers which don;t change the name
+      now fortran prefix is magmaf instead of magma
+    * Small documentation fixes
+    * Fix timing under windows, thanks to Evan Lazar
+    * Fix problem when __func__ is not present, thanks to Evan Lazar
+    * Fix bug with m==n==0 in LU, thanks to Evan Lazar
+    * Fix bug on [cz]unmqr, [sd]ormqr functions
+    * Fix bug in [zcsd]gebrd; fixes bug in SVD for n>m
+    * Fix bug in [zcsd]geqrs_gpu for multiple RHS
+    * Added functionality - zcgesv_gpu and dsgesv_gpu can now solve also
+      A' X = B using mixed-precision iterative refinement
+    * Fix error code in testings.h to compile with cuda 4.0
+
+ 1.0.0RC4 - March 8th, 2011
+
+    * Add control directory to group all non computational functions
+    * Integration of the eigenvalues solvers
+    * Clean some f2c code in eigenvalues solvers
+    * Arithmetic consistency: cuDoubleComplex and cuFloatComplex are
+      the  only types used for complex now.
+    * Consistency of the interface of some functions.
+    * Clean most of the return values in lapack functions
+    * Fix multiple definition of min, max,
+    * Fix headers problem under windows, thanks to Willem Burger

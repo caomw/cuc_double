@@ -1,0 +1,38 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date November 2016
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := include
+# ----------------------------------------------------------------------
+
+
+# only headers needing precision generation need to go here.
+# plain headers do not need to be listed.
+hdr += \
+	$(cdir)/magma_z.h		\
+	$(cdir)/magma_zc.h		\
+	$(cdir)/magmablas_z.h		\
+	$(cdir)/magmablas_z_v1.h	\
+	$(cdir)/magmablas_z_v1_map.h	\
+	$(cdir)/magmablas_zc.h		\
+	$(cdir)/magmablas_zc_v1.h	\
+	$(cdir)/magmablas_zc_v1_map.h	\
+	$(cdir)/magma_zlapack.h		\
+	$(cdir)/magma_zbulge.h		\
+	$(cdir)/magma_zbulgeinc.h	\
+	$(cdir)/magma_zgehrd_m.h	\
+	$(cdir)/magma_zbatched.h	\
+	$(cdir)/magma_zvbatched.h	\
+
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))

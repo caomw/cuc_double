@@ -1,0 +1,52 @@
+Known bugs & issues
+
+These show up when using testing run_tests.py --tol 100.
+
+
+Nov 2016
+zheevd and zhetrd (all versions, uplo=lower) -- segfault
+Using OpenBLAS 0.2.19; appears to be in zhemv_l function.
+With previous versions of OpenBLAS, also crashed in ssyevd.
+Crashes do NOT occur when using Intel MKL.
+Suspect OpenBLAS bug.
+
+
+Jan 2016
+[cz]heevr                               -- accuracy failures, xerbla errors
+Fails when computing only eigenvalues (jobz=N).
+
+
+Jan 2016
+[sdcz]geqlf, geqrf, lange, larfb, gesdd, gesvd  --  accuracy failures
+Several routines fail accuracy tests for very tall or very wide matrices
+(e.g., -N 2000000,10 -N 10,2000000). These may simply be not normalized correctly.  
+
+
+Jan 2016
+[sdcz]geqr2x_gpu --version 2 and 4      --  accuracy failures
+Fail orthogonality checks, |I - Q^H*Q|.
+
+
+Aug 2015
+[sdcz]trsm_batched                      --  accuracy failures
+These result from badly conditioned triangular matrices.
+The tester needs to be updated to take the conditioning into account in the check.
+
+
+Aug 2015
+[s c ]geqrf_batched                     --  transient NAN failures
+Occasionally gets NaN results, possibly due to race condition.
+
+
+Jan 2015
+[sdcz]sy/hemm_mgpu                      --  accuracy failures
+In a multi-GPU run, some GPUs report failed results for some offsets.
+It does not appear to affect the eigenvalue routines where it is used.
+Suspect that the tester needs to be updated to match the actual routine output.
+
+
+Aug 2015
+[sd  ]gegqr_gpu --version 3             --  MGS accuracy failure, N=95
+[sd  ]gegqr_gpu --version 4             --  Cholesky QR fails (not SPD), N=95
+These occur for the same matrix, so are probably related to a deficiency, e.g.,
+poor conditioning, in that matrix.
