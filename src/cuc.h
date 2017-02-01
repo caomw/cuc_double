@@ -9,12 +9,12 @@
 namespace ceres {
 	struct Jacobian {
 	public:
-		Jacobian() : num_rows(0), num_cols(0) {}
-		int num_rows;
-		int num_cols;
-		std::vector<int> cols;
-		std::vector<int> rows;
-		std::vector<double> values;
+		Jacobian() : _num_rows(0), _num_cols(0) {}
+		int _num_rows;
+		int _num_cols;
+		std::vector<int> _cols;
+		std::vector<int> _rows;
+		std::vector<double> _values;
 	};
 
 	struct Options {

@@ -11,10 +11,10 @@ double timeDuration(clock_t from, clock_t to) {
 }
 
 void Jacobian2J(ceres::Jacobian *jacobian, SM *J) {
-	J->reserve(jacobian->cols.size());
-	for (int i = 0; i < jacobian->num_rows; i++) {
-		for (int j = jacobian->rows[i]; j < jacobian->rows[i + 1]; ++j) {
-			J->insert(i, jacobian->cols[j]) = jacobian->values[j];
+	J->reserve(jacobian->_cols.size());
+	for (int i = 0; i < jacobian->_num_rows; i++) {
+		for (int j = jacobian->_rows[i]; j < jacobian->_rows[i + 1]; ++j) {
+			J->insert(i, jacobian->_cols[j]) = jacobian->_values[j];
 		}
 	}
 }
@@ -207,7 +207,7 @@ void computeCovariances(ceres::Options *options, ceres::Jacobian *jacobian, doub
 	magma_queue_create(info, &queue);
 	magma_print_environment();
 
-	SM J(jacobian->num_rows, jacobian->num_cols);
+	SM J(jacobian->_num_rows, jacobian->_num_cols);
 	Jacobian2J(jacobian, &J);
 
 
@@ -259,7 +259,7 @@ void computeCovariances(ceres::Options *options, ceres::Jacobian *jacobian, doub
 	cout << "Points uncertainty ...";
 	clock_t spts = clock();
 	int *camsIds, *ptsIds, *csPts, maxCams;
-	findICP(options->_numObs, options->_camParams, options->_numCams, jacobian->cols.data(), &camsIds, &ptsIds);
+	findICP(options->_numObs, options->_camParams, options->_numCams, jacobian->_cols.data(), &camsIds, &ptsIds);
 	thrust::sort_by_key(ptsIds, ptsIds + options->_numObs, camsIds);
 	exCSPts(options->_numObs, options->_numPoints, ptsIds, &maxCams, &csPts);
 
