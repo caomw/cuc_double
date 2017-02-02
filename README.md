@@ -25,6 +25,21 @@ _cols
 _values
 ```
 
+The application creates output file with the same name as input plus suffix `_uncertatiny` which will contain:
+```
+_lambda _numCams _camParams _numPoints _numObs    
+covariances_of_camera_parameters  
+covariances_of_point_parameters
+```
+The array `covariances_of_camera_parameters` is composed from upper trianges of all covariances. Thus, the number of values will be `(0.5 _camParams (_camParams + 1)) * _numCams` and for `covariances_of_point_parameters` it is `6 _numPoints`. 
+
+The values are listed in the order columns first, e.g.:
+```
+1  2  3  4   
+-  5  6  7
+-  -  8  9
+-  -  - 10
+```
 
 
 ## Running the mex file
