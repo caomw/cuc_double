@@ -18,7 +18,7 @@ Then, run the application by:
 
 The parameters as (`_algorithm`, `_lambda`, ...) are described bellow. The file with Jacobian require following structure:
 ```
-_lambda _numCams _numPoints _numObs _camParams  
+_lambda _numCams _camParams _numPoints _numObs   
 _num_rows _num_cols _values.size()  
 _rows  
 _cols  
