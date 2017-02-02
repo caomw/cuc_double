@@ -61,6 +61,14 @@ void iZZupdate(int N, DM *iZZ) {
 	}
 }
 
+void symmetrizeMatrix(int N, DM* A) {
+#pragma omp parallel for
+	for (int i = 0; i < N; ++i) {
+		for (int j = i; j < N; ++j)
+			(*A)(i, j) = (*A)(j, i);
+	}
+}
+
 void schurInverse(magma_int_t *info, int N, ceres::Options *options, DM *dZ, DM *iUVW) {
 	double alpha = 1, beta = 0, change = DBL_MAX, old_change = DBL_MAX;
 	// Z -> ZZ
@@ -68,44 +76,35 @@ void schurInverse(magma_int_t *info, int N, ceres::Options *options, DM *dZ, DM 
 	blasf77_dsyrk(lapack_uplo_const(MagmaLower), lapack_trans_const(MagmaNoTrans), &N, &N,
 		&alpha, dZ->data(), &N,
 		&beta, iZZ.data(), &N);
-	#pragma omp parallel for
-	for (int i = 0; i < N; ++i) {
-		for (int j = i; j < N; ++j)
-			iZZ(i, j) = iZZ(j, i);
-	}
+	symmetrizeMatrix(N, &iZZ);
 
 	// ZZ -> ZZ + lam I
 	double lambda = options->_lambda;
+	double c = 1 / iZZ.mean();
 	if (lambda == -1)
-		lambda = iZZ.trace() / 1e16;		
-	double s = 1 / iZZ.mean();						cout << " (our lambda: " << (s * lambda) << ") ";  //exit(1);
-	iZZ = s * iZZ + s * lambda * MatrixXd::Identity(N, N);
+		lambda = c * iZZ.trace() / 1e16;		
+	cout << " > used lambda: " << lambda << " ";
+	iZZ = c * iZZ + lambda * MatrixXd::Identity(N, N);
 
 	// ZZ -> iZZ 
 	magma_dpotrf(MagmaLower, N, iZZ.data(), N, info); TESTING_CHECK(*info);
 	magma_dpotri(MagmaLower, N, iZZ.data(), N, info); TESTING_CHECK(*info);
-	#pragma omp parallel for
-	for (int i = 0; i < N; ++i) {
-		for (int j = i; j < N; ++j) {
-			iZZ(j, i) *= s;
-			iZZ(i, j) = iZZ(j, i);
-		}
-	}
+	symmetrizeMatrix(N, &iZZ);
 
 	// iZZ,Z -> A
 	DM A(N, N);
 	blasf77_dsymm(lapack_side_const(MagmaLeft), lapack_uplo_const(MagmaLower), &N, &N,
-		&alpha, iZZ.data(), &N,
+		&c, iZZ.data(), &N,
 		dZ->data(), &N,
 		&beta, A.data(), &N);
 
-
 	// Taylor expansion of the x(lambda) evaluated in point x(0)
 	*iUVW = MatrixXd::Identity(N, N);
-	for (int i = 1; i < 10; ++i) {
+	for (int i = 1; i < 10; ++i) {			// cycle from 1, lambda have to equal 1 in the first cycle !!!
 		old_change = change;
-		(*iUVW) += (i % 2 == 0 ? -1 : 1) * pow(lambda, i) * iZZ;
-		change = abs(pow(lambda, i) * (iZZ.maxCoeff()));
+		double k = (i % 2 == 0 ? -1 : 1) * pow(c, i) * pow(lambda, i);
+		(*iUVW) += k * iZZ;
+		change = k * abs((iZZ.maxCoeff()));
 		//cout << ">>> cykle " << i << ", l_inf_norm(change): " << change << "\n";
 		
 		if ((change < 1e-5) || (old_change < change)) { break; }

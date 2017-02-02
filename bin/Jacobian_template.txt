@@ -1,0 +1,5 @@
+lamda numCams camParams numPoints numObs 
+jacobian.num_rows jacobian.num_cols jacobian.values.size()
+jacobanRows
+jacobianCols
+jacobianValues
