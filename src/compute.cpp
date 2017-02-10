@@ -80,35 +80,42 @@ void schurInverse(magma_int_t *info, int N, ceres::Options *options, DM *dZ, DM 
 
 	// ZZ -> ZZ + lam I
 	double lambda = options->_lambda;
-	double c = 1 / iZZ.mean();
+	double c1 = 1 / iZZ.mean();
 	if (lambda == -1)
-		lambda = c * iZZ.trace() / 1e16;		
+		lambda = iZZ.trace() / 1e15;		
 	cout << " > used lambda: " << lambda << " ";
-	iZZ = c * iZZ + lambda * MatrixXd::Identity(N, N);
+	iZZ = c1 * iZZ +  c1 * lambda * MatrixXd::Identity(N, N);
 
 	// ZZ -> iZZ 
 	magma_dpotrf(MagmaLower, N, iZZ.data(), N, info); TESTING_CHECK(*info);
 	magma_dpotri(MagmaLower, N, iZZ.data(), N, info); TESTING_CHECK(*info);
 	symmetrizeMatrix(N, &iZZ);
 
+	// Scale iZZ
+	double c2 = 1 / iZZ.norm();
+	iZZ = c2 * iZZ;
+
 	// iZZ,Z -> A
+	double c12 = c1 / c2;
 	DM A(N, N);
 	blasf77_dsymm(lapack_side_const(MagmaLeft), lapack_uplo_const(MagmaLower), &N, &N,
-		&c, iZZ.data(), &N,
+		&c12, iZZ.data(), &N,
 		dZ->data(), &N,
 		&beta, A.data(), &N);
 
 	// Taylor expansion of the x(lambda) evaluated in point x(0)
 	*iUVW = MatrixXd::Identity(N, N);
-	for (int i = 1; i < 10; ++i) {			// cycle from 1, lambda have to equal 1 in the first cycle !!!
-		old_change = change;
-		double k = (i % 2 == 0 ? -1 : 1) * pow(c, i) * pow(lambda, i);
-		(*iUVW) += k * iZZ;
-		change = k * abs((iZZ.maxCoeff()));
-		//cout << ">>> cykle " << i << ", l_inf_norm(change): " << change << "\n";
+	for (int i = 1; i < 20; ++i) {			// cycle from 1, lambda have to equal 1 in the first cycle !!!
+		double k = (i % 2 == 0 ? -1 : 1) * pow(lambda*c12, i);
+		change = k * abs((iZZ.maxCoeff()));			//cout << ">>> cykle " << i << ", l_inf_norm(change): " << change << "\n";
 		
-		if ((change < 1e-5) || (old_change < change)) { break; }
-		iZZupdate(N, &iZZ);
+		if ((change < 1e-5) || (old_change < change)) { 
+			break; 
+		}else{
+			old_change = change;
+			(*iUVW) += k * iZZ;
+			iZZupdate(N, &iZZ);
+		}
 	}
 	// iUVW *= A
 	iUVWA(N, &A, iUVW);
